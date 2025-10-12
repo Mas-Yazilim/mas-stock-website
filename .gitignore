@@ -1,0 +1,41 @@
+# ==================================
+# ÖNEMLİ: Parolalar ve gizli bilgiler
+# ==================================
+.env
+*.env
+.env.local
+.env.production
+
+# ==================================
+# Node.js bağımlılıkları (çok büyük)
+# ==================================
+node_modules/
+
+# ==================================
+# Derleme/Build dosyaları (otomatik oluşur)
+# ==================================
+dist/
+build/
+
+# ==================================
+# Log dosyaları (hata kayıtları)
+# ==================================
+*.log
+npm-debug.log*
+
+# ==================================
+# Editör dosyaları (kişisel ayarlar)
+# ==================================
+.vscode/
+.idea/
+
+# ==================================
+# Windows işletim sistemi dosyaları
+# ==================================
+Thumbs.db
+
+# ==================================
+# Mac işletim sistemi dosyaları
+# ==================================
+.DS_Store
+

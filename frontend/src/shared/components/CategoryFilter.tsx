@@ -3,23 +3,17 @@ import React from 'react'
 interface CategoryFilterProps {
   onCategoryChange: (category: string) => void
   selectedCategory: string
+  categories?: string[]
 }
 
-const CategoryFilter: React.FC<CategoryFilterProps> = ({ onCategoryChange, selectedCategory }) => {
-  const categories = [
-    { value: '', label: 'Tüm Kategoriler', icon: '📦' },
-    { value: 'TELEFON', label: 'Telefon', icon: '📱' },
-    { value: 'TABLET', label: 'Tablet', icon: '📱' },
-    { value: 'LAPTOP', label: 'Laptop', icon: '💻' },
-    { value: 'AKILLI SAAT', label: 'Akıllı Saat', icon: '⌚' },
-    { value: 'KULAKLIK', label: 'Kulaklık', icon: '🎧' },
-    { value: 'KAMERA', label: 'Kamera', icon: '📷' },
-    { value: 'DİĞER', label: 'Diğer', icon: '🔧' },
-  ]
+const CategoryFilter: React.FC<CategoryFilterProps> = ({ onCategoryChange, selectedCategory, categories }) => {
+  const items = [{ value: '', label: 'Tüm Kategoriler' }].concat(
+    (categories || []).map((c) => ({ value: c, label: c }))
+  )
 
   return (
     <div className="flex flex-wrap justify-center gap-2">
-      {categories.map((category) => (
+      {items.map((category) => (
         <button
           key={category.value}
           onClick={() => onCategoryChange(category.value)}
@@ -29,7 +23,6 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({ onCategoryChange, selec
               : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 hover:border-primary-300'
           }`}
         >
-          <span className="mr-2">{category.icon}</span>
           {category.label}
         </button>
       ))}

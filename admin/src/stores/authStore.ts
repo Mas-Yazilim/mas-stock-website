@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { apiEndpoint } from '@/shared/config'
 
 interface Admin {
   id: string
@@ -60,7 +61,7 @@ export const useAuthStore = create<AuthStore>((set, get) => {
 
     login: async (email: string, password: string) => {
       try {
-        const response = await fetch('http://localhost:3002/api/auth/login', {
+        const response = await fetch(apiEndpoint('/auth/login'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

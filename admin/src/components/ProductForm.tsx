@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
+import { apiEndpoint } from '@/shared/config'
 
 const ProductForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const ProductForm: React.FC = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/products/categories/list')
+      const response = await fetch(apiEndpoint('/products/categories/list'))
       if (response.ok) {
         const data = await response.json()
         setCategories(data.categories || [])
@@ -43,7 +44,7 @@ const ProductForm: React.FC = () => {
     setSuccess('')
 
     try {
-      const response = await fetch('http://localhost:3002/api/products', {
+      const response = await fetch(apiEndpoint('/products'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -55,6 +56,16 @@ const ProductForm: React.FC = () => {
           visaPrice: Number(formData.visaPrice),
         }),
       })
+
+      if (response.status === 401) {
+        try {
+          const data = await response.json()
+          console.warn('Auth 401:', data)
+        } catch {}
+        useAuthStore.getState().logout()
+        setError('Oturum süreniz doldu. Lütfen tekrar giriş yapın.')
+        return
+      }
 
       if (response.ok) {
         setSuccess('Ürün başarıyla eklendi!')

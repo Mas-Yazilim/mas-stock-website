@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
+import { apiEndpoint } from '@/shared/config'
 
 interface Product {
   _id: string
@@ -32,11 +33,22 @@ const ProductList: React.FC = () => {
   const loadProducts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:3002/api/products', {
+      const response = await fetch(apiEndpoint('/products'), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       })
+
+      if (response.status === 401) {
+        try {
+          const data = await response.json()
+          console.warn('Auth 401:', data)
+        } catch {}
+        // Token geçersiz/expired ise oturumu kapat
+        useAuthStore.getState().logout()
+        alert('Oturum süreniz doldu. Lütfen tekrar giriş yapın.')
+        return
+      }
 
       if (response.ok) {
         const data = await response.json()

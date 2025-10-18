@@ -42,7 +42,7 @@ const ColorSwatches: React.FC<ColorSwatchesProps> = ({
           title={color.name}
         >
           <div
-            className={`w-4 h-4 rounded-full shadow-sm ${isLightColor(color.hex) ? 'border border-gray-300 ring-1 ring-gray-200' : 'border border-gray-200'}`}
+            className={`w-6 h-6 rounded-md shadow-sm ${isLightColor(color.hex) ? 'border border-gray-400 ring-1 ring-gray-200' : 'border border-gray-400'}`}
             style={{ backgroundColor: color.hex }}
           />
           

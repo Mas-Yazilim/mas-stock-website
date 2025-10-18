@@ -19,10 +19,23 @@ const ProductForm: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([])
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false)
   const [newCategory, setNewCategory] = useState('')
+  const [brands, setBrands] = useState<string[]>([])
+  const [models, setModels] = useState<string[]>([])
+  const [storages, setStorages] = useState<string[]>([])
+
+  const [showNewBrandInput, setShowNewBrandInput] = useState(false)
+  const [newBrand, setNewBrand] = useState('')
+
+  const [showNewModelInput, setShowNewModelInput] = useState(false)
+  const [newModel, setNewModel] = useState('')
+
+  const [showNewStorageInput, setShowNewStorageInput] = useState(false)
+  const [newStorage, setNewStorage] = useState('')
   const { token } = useAuthStore()
 
   useEffect(() => {
     loadCategories()
+    loadBrands()
   }, [])
 
   const loadCategories = async () => {
@@ -36,6 +49,68 @@ const ProductForm: React.FC = () => {
       console.error('Kategoriler yüklenemedi:', error)
     }
   }
+
+  const loadBrands = async () => {
+    try {
+      const response = await fetch(apiEndpoint('/products/brands/list'))
+      if (response.ok) {
+        const data = await response.json()
+        setBrands(data.brands || [])
+      }
+    } catch (error) {
+      console.error('Markalar yüklenemedi:', error)
+    }
+  }
+
+  const loadModels = async (brand?: string) => {
+    try {
+      const params = brand ? `?brand=${encodeURIComponent(brand)}` : ''
+      const response = await fetch(apiEndpoint(`/products/models/list${params}`))
+      if (response.ok) {
+        const data = await response.json()
+        setModels(data.models || [])
+      }
+    } catch (error) {
+      console.error('Modeller yüklenemedi:', error)
+    }
+  }
+
+  const loadStorages = async (brand?: string, model?: string) => {
+    try {
+      const qs = new URLSearchParams()
+      if (brand) qs.set('brand', brand)
+      if (model) qs.set('model', model)
+      const response = await fetch(apiEndpoint(`/products/storages/list${qs.toString() ? `?${qs}` : ''}`))
+      if (response.ok) {
+        const data = await response.json()
+        setStorages(data.storages || [])
+      }
+    } catch (error) {
+      console.error('Depolamalar yüklenemedi:', error)
+    }
+  }
+
+  // Bağımlı yüklemeler
+  useEffect(() => {
+    // Marka değişince model ve depolamayı sıfırla ve yeniden yükle
+    setFormData(fd => ({ ...fd, model: '', storage: '' }))
+    setModels([])
+    setStorages([])
+    if (formData.brand) {
+      loadModels(formData.brand)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.brand])
+
+  useEffect(() => {
+    // Model değişince depolamayı sıfırla ve yeniden yükle
+    setFormData(fd => ({ ...fd, storage: '' }))
+    setStorages([])
+    if (formData.brand || formData.model) {
+      loadStorages(formData.brand, formData.model)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.model])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -132,36 +207,190 @@ const ProductForm: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Marka</label>
+              {!showNewBrandInput ? (
+                <div className="flex gap-2">
+                  <select
+                    value={formData.brand}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') {
+                        setShowNewBrandInput(true)
+                        setFormData({ ...formData, brand: '' })
+                      } else {
+                        setFormData({ ...formData, brand: e.target.value })
+                      }
+                    }}
+                    required
+                    className="input-field flex-1"
+                  >
+                    <option value="">Marka seçin</option>
+                    {brands.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                    <option value="__new__">+ Yeni Marka Ekle</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="flex gap-2">
               <input
                 type="text"
-                value={formData.brand}
-                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                required
-                className="input-field"
-              />
+                    value={newBrand}
+                    onChange={(e) => setNewBrand(e.target.value)}
+                    placeholder="Yeni marka"
+                    className="input-field flex-1"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newBrand.trim()) {
+                        setFormData({ ...formData, brand: newBrand.trim() })
+                        setBrands([...brands, newBrand.trim()])
+                        setShowNewBrandInput(false)
+                        setNewBrand('')
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewBrandInput(false)
+                      setNewBrand('')
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Model</label>
+              {!showNewModelInput ? (
+                <div className="flex gap-2">
+                  <select
+                    value={formData.model}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') {
+                        setShowNewModelInput(true)
+                        setFormData({ ...formData, model: '' })
+                      } else {
+                        setFormData({ ...formData, model: e.target.value })
+                      }
+                    }}
+                    required
+                    className="input-field flex-1"
+                    disabled={!formData.brand && models.length === 0}
+                  >
+                    <option value="">{formData.brand ? 'Model seçin' : 'Önce marka seçin'}</option>
+                    {models.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                    <option value="__new__">+ Yeni Model Ekle</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="flex gap-2">
               <input
                 type="text"
-                value={formData.model}
-                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                required
-                className="input-field"
-              />
+                    value={newModel}
+                    onChange={(e) => setNewModel(e.target.value)}
+                    placeholder="Yeni model"
+                    className="input-field flex-1"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newModel.trim()) {
+                        setFormData({ ...formData, model: newModel.trim() })
+                        setModels([...models, newModel.trim()])
+                        setShowNewModelInput(false)
+                        setNewModel('')
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewModelInput(false)
+                      setNewModel('')
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Depolama</label>
+              {!showNewStorageInput ? (
+                <div className="flex gap-2">
+                  <select
+                    value={formData.storage}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') {
+                        setShowNewStorageInput(true)
+                        setFormData({ ...formData, storage: '' })
+                      } else {
+                        setFormData({ ...formData, storage: e.target.value })
+                      }
+                    }}
+                    required
+                    className="input-field flex-1"
+                    disabled={!formData.model && storages.length === 0}
+                  >
+                    <option value="">{formData.model ? 'Depolama seçin' : 'Önce model seçin (veya marka)'}</option>
+                    {storages.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                    <option value="__new__">+ Yeni Depolama Ekle</option>
+                  </select>
+                </div>
+              ) : (
+                <div className="flex gap-2">
               <input
                 type="text"
-                value={formData.storage}
-                onChange={(e) => setFormData({ ...formData, storage: e.target.value })}
-                required
-                className="input-field"
-                placeholder="örn: 128GB, 256GB"
-              />
+                    value={newStorage}
+                    onChange={(e) => setNewStorage(e.target.value)}
+                    placeholder="örn: 128GB"
+                    className="input-field flex-1"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (newStorage.trim()) {
+                        setFormData({ ...formData, storage: newStorage.trim() })
+                        setStorages([...storages, newStorage.trim()])
+                        setShowNewStorageInput(false)
+                        setNewStorage('')
+                      }
+                    }}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewStorageInput(false)
+                      setNewStorage('')
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>

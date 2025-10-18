@@ -328,4 +328,41 @@ router.get('/categories/list', async (req, res) => {
   }
 });
 
+// Model'leri getir (opsiyonel brand filtresi ile)
+router.get('/models/list', async (req, res) => {
+  try {
+    const { brand } = req.query;
+    const filter = { isActive: true };
+    if (brand) filter.brand = new RegExp(brand, 'i');
+
+    const models = await Product.distinct('model', filter);
+    res.json({
+      message: 'Modeller başarıyla getirildi',
+      models: models.sort(),
+    });
+  } catch (error) {
+    console.error('Get models error:', error);
+    res.status(500).json({ message: 'Modeller getirilemedi' });
+  }
+});
+
+// Depolamaları getir (opsiyonel brand/model filtreleri ile)
+router.get('/storages/list', async (req, res) => {
+  try {
+    const { brand, model } = req.query;
+    const filter = { isActive: true };
+    if (brand) filter.brand = new RegExp(brand, 'i');
+    if (model) filter.model = new RegExp(model, 'i');
+
+    const storages = await Product.distinct('storage', filter);
+    res.json({
+      message: 'Depolamalar başarıyla getirildi',
+      storages: storages.sort(),
+    });
+  } catch (error) {
+    console.error('Get storages error:', error);
+    res.status(500).json({ message: 'Depolamalar getirilemedi' });
+  }
+});
+
 export default router;

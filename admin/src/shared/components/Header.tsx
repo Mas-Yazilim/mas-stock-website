@@ -11,27 +11,36 @@ const Header: React.FC = () => {
           {/* Logo ve Şirket Adı */}
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-3">
-              {/* Türkiye Haritası Logo */}
-              <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center">
+              {/* Türk Bayrağı Logo */}
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #e30a17 90%, #d10013 100%)" }}>
                 <svg 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 100 100" 
+                  width="40"
+                  height="40"
+                  viewBox="0 0 40 40"
                   fill="none" 
-                  className="text-white"
+                  className="block"
+                  aria-label="Türk Bayrağı"
                 >
-                  {/* Türkiye Haritası SVG */}
-                  <path 
-                    d="M20 30 L30 25 L40 20 L50 22 L60 25 L65 30 L70 40 L68 50 L65 60 L60 70 L55 75 L45 80 L35 82 L25 80 L20 70 L18 60 L20 50 L22 40 L20 30 Z" 
-                    fill="currentColor"
-                    stroke="currentColor"
-                    strokeWidth="0.5"
-                  />
-                  <path 
-                    d="M55 75 L60 70 L65 60 L68 50 L70 40 L72 35 L75 30 L80 35 L82 45 L80 55 L75 65 L70 75 L65 80 L60 82 L55 75 Z" 
-                    fill="currentColor"
-                    stroke="currentColor"
-                    strokeWidth="0.5"
+                  {/* Kırmızı Arka Plan */}
+                  <rect width="40" height="40" rx="10" fill="#e30a17" />
+                  {/* Büyük Hilal */}
+                  <circle cx="17" cy="20" r="10" fill="#fff" />
+                  <circle cx="20" cy="20" r="7.5" fill="#e30a17" />
+                  {/* Büyük Yıldız */}
+                  <polygon
+                    fill="#fff"
+                    points="
+                      29.5,20 
+                      27.2,21.7 
+                      28.1,19.0
+                      25.8,17.4 
+                      28.7,17.3 
+                      29.5,14.7 
+                      30.3,17.3 
+                      33.2,17.4 
+                      30.9,19.0 
+                      31.8,21.7
+                    "
                   />
                 </svg>
               </div>

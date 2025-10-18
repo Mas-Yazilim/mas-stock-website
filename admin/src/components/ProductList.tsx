@@ -127,7 +127,7 @@ const ProductList: React.FC = () => {
                       {product.colors.slice(0, 3).map((color, index) => (
                         <div
                           key={index}
-                          className="w-4 h-4 rounded-full border border-gray-300"
+                          className="w-6 h-6 rounded-md border border-gray-400"
                           style={{ backgroundColor: color.hex }}
                           title={color.name}
                         />
@@ -148,7 +148,7 @@ const ProductList: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPrice(product.visaPrice)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      className={`inline-flex px-4 py-2 text-xs font-semibold rounded-md border border-gray-300 ${
                         product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}
                     >
@@ -156,20 +156,32 @@ const ProductList: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-4">
+                      {/* Düzenle Butonu */}
                       <button
-                        className="text-blue-600 hover:text-blue-900"
+                        className="relative flex items-center justify-center w-10 h-10 rounded-md border border-blue-50 bg-white hover:bg-blue-100 transition"
                         title="Düzenle"
+                        style={{
+                          borderWidth: '1px',
+                          boxShadow:
+                            '0 0 0 1px #3b82f6, 0 0 12px 2.5px #3b82f6, 0 0 22px 6px rgba(59,130,246,0.62)'
+                        }}
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
+                      {/* Sil Butonu */}
                       <button
-                        className="text-red-600 hover:text-red-900"
+                        className="relative flex items-center justify-center w-10 h-10 rounded-md border border-red-50 bg-white hover:bg-red-100 transition"
                         title="Sil"
+                        style={{
+                          borderWidth: '1px',
+                          boxShadow:
+                            '0 0 0 1px #ef4444, 0 0 12px 2.5px #ef4444, 0 0 22px 6px rgba(239,68,68,0.62)'
+                        }}
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>

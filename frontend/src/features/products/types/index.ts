@@ -6,6 +6,7 @@ export interface Product {
   storage: string
   category: string
   colors: ProductColor[]
+  accessories?: ProductAccessory[]
   cashPrice: number
   visaPrice: number
   isActive: boolean
@@ -16,6 +17,13 @@ export interface Product {
 export interface ProductColor {
   name: string
   hex: string
+  available: boolean
+}
+
+export interface ProductAccessory {
+  name: string
+  description?: string
+  price: number
   available: boolean
 }
 

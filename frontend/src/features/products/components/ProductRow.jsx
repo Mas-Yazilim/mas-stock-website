@@ -1,13 +1,12 @@
 import React from 'react'
-import { Product } from '../types'
-import ColorSwatches from './ColorSwatches'
+import ColorSwatches from './ColorSwatches.jsx'
 
-interface ProductRowProps {
-  product: Product
-}
-
-const ProductRow: React.FC<ProductRowProps> = ({ product }) => {
-  const formatPrice = (price: number): string => {
+/**
+ * @param {Object} props
+ * @param {import('../types').Product} props.product
+ */
+const ProductRow = ({ product }) => {
+  const formatPrice = (price) => {
     return new Intl.NumberFormat('tr-TR', {
       style: 'currency',
       currency: 'TRY',

@@ -1,23 +1,29 @@
 import { useState, useEffect, useCallback } from 'react'
-import { apiService, Product } from '@/services/api'
+import { apiService } from '@/services/api.js'
 
-interface UseProductsParams {
-  category?: string
-  brand?: string
-  search?: string
-}
+/**
+ * @typedef {Object} UseProductsParams
+ * @property {string} [category]
+ * @property {string} [brand]
+ * @property {string} [search]
+ */
 
-interface UseProductsReturn {
-  products: Product[]
-  loading: boolean
-  error: string | null
-  refetch: () => Promise<void>
-}
+/**
+ * @typedef {Object} UseProductsReturn
+ * @property {import('../features/products/types').Product[]} products
+ * @property {boolean} loading
+ * @property {string|null} error
+ * @property {() => Promise<void>} refetch
+ */
 
-export const useProducts = (params?: UseProductsParams): UseProductsReturn => {
-  const [products, setProducts] = useState<Product[]>([])
+/**
+ * @param {UseProductsParams} [params]
+ * @returns {UseProductsReturn}
+ */
+export const useProducts = (params) => {
+  const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState(null)
 
   const fetchProducts = useCallback(async () => {
     try {

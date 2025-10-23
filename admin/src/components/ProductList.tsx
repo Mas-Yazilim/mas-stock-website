@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import { apiEndpoint } from '@/shared/config'
+import ProductEditModal from './ProductEditModal'
+import ProductDeleteModal from './ProductDeleteModal'
 
 interface Product {
   _id: string
@@ -23,7 +25,11 @@ const ProductList: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedBrand, setSelectedBrand] = useState('')
+  const [selectedBrand] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const { token } = useAuthStore()
 
   useEffect(() => {
@@ -75,9 +81,31 @@ const ProductList: React.FC = () => {
       product.model.toLowerCase().includes(searchQuery.toLowerCase())
     
     const matchesBrand = !selectedBrand || product.brand === selectedBrand
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && product.isActive) ||
+      (statusFilter === 'inactive' && !product.isActive)
 
-    return matchesSearch && matchesBrand
+    return matchesSearch && matchesBrand && matchesStatus
   })
+
+  const handleEditModalClose = () => {
+    setEditModalOpen(false)
+    setSelectedProduct(null)
+  }
+
+  const handleDeleteModalClose = () => {
+    setDeleteModalOpen(false)
+    setSelectedProduct(null)
+  }
+
+  const handleProductUpdate = () => {
+    loadProducts()
+  }
+
+  const handleProductDelete = () => {
+    loadProducts()
+  }
 
   if (loading) {
     return (
@@ -93,6 +121,15 @@ const ProductList: React.FC = () => {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Ürün Listesi</h2>
         <div className="flex space-x-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          >
+            <option value="all">Tüm Ürünler</option>
+            <option value="active">Aktif Ürünler</option>
+            <option value="inactive">Pasif Ürünler</option>
+          </select>
           <input
             type="text"
             placeholder="Ürün ara..."
@@ -108,14 +145,15 @@ const ProductList: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürün</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Marka</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Model</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Depolama</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nakit</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visa</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Ürün</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Marka</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Model</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Depolama</th>
+            
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Nakit</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">Visa</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">Durum</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">İşlemler</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -144,6 +182,7 @@ const ProductList: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.brand}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.model}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.storage}</td>
+              
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPrice(product.cashPrice)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatPrice(product.visaPrice)}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -156,33 +195,85 @@ const ProductList: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-4">
+                    <div className="flex space-x-3">
                       {/* Düzenle Butonu */}
                       <button
-                        className="relative flex items-center justify-center w-10 h-10 rounded-md border border-blue-50 bg-white hover:bg-blue-100 transition"
-                        title="Düzenle"
-                        style={{
-                          borderWidth: '1px',
-                          boxShadow:
-                            '0 0 0 1px #3b82f6, 0 0 12px 2.5px #3b82f6, 0 0 22px 6px rgba(59,130,246,0.62)'
+                        onClick={() => {
+                          setSelectedProduct(product)
+                          setEditModalOpen(true)
                         }}
+                        className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        title="Düzenle"
                       >
-                        <svg className="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                       </button>
-                      {/* Sil Butonu */}
+                      {/* Aktiflik toggle (güç ikonu) */}
                       <button
-                        className="relative flex items-center justify-center w-10 h-10 rounded-md border border-red-50 bg-white hover:bg-red-100 transition"
-                        title="Sil"
-                        style={{
-                          borderWidth: '1px',
-                          boxShadow:
-                            '0 0 0 1px #ef4444, 0 0 12px 2.5px #ef4444, 0 0 22px 6px rgba(239,68,68,0.62)'
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(apiEndpoint(`/products/${product._id}?toggle=true`), {
+                              method: 'DELETE',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                              }
+                            })
+                            if (res.ok) {
+                              await res.json()
+                              loadProducts()
+                            } else if (res.status === 401) {
+                              useAuthStore.getState().logout()
+                              alert('Oturum süreniz doldu.')
+                            } else {
+                              console.error('Toggle failed')
+                            }
+                          } catch (err) {
+                            console.error('Toggle error', err)
+                          }
                         }}
+                        className={`flex items-center justify-center w-10 h-10 text-white rounded-lg transition-all duration-200 transform hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                          product.isActive ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 focus:ring-yellow-500' : 'bg-gradient-to-r from-gray-400 to-gray-500'
+                        }`}
+                        title={product.isActive ? 'Pasifleştir' : 'Aktifleştir'}
                       >
-                        <svg className="w-5 h-5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        {/* Power icon */}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v10m5.657 2.343A8 8 0 1110.343 4.343" />
+                        </svg>
+                      </button>
+
+                      {/* Kalıcı silme butonu (çöp kutusu) */}
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Bu ürünü veritabanından kalıcı olarak silmek istediğinize emin misiniz?')) return
+                          try {
+                            const res = await fetch(apiEndpoint(`/products/${product._id}?hard=true`), {
+                              method: 'DELETE',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                              }
+                            })
+                            if (res.ok) {
+                              await res.json()
+                              loadProducts()
+                            } else if (res.status === 401) {
+                              useAuthStore.getState().logout()
+                              alert('Oturum süreniz doldu.')
+                            } else {
+                              console.error('Hard delete failed')
+                            }
+                          } catch (err) {
+                            console.error('Hard delete error', err)
+                          }
+                        }}
+                        className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-110 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        title="Ürünü kalıcı sil"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" />
                         </svg>
                       </button>
                     </div>
@@ -193,6 +284,20 @@ const ProductList: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <ProductEditModal
+        isOpen={editModalOpen}
+        onClose={handleEditModalClose}
+        onSave={handleProductUpdate}
+        product={selectedProduct}
+      />
+
+      <ProductDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteModalClose}
+        onDelete={handleProductDelete}
+        product={selectedProduct}
+      />
     </div>
   )
 }

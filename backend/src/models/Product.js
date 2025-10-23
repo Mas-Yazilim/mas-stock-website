@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Ürün adı gereklidir'],
     trim: true,
-    unique: true
+    //unique: true
   },
   brand: {
     type: String,
@@ -78,8 +78,7 @@ const productSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// İndeksler
-productSchema.index({ name: 1 });
+// İndeksler - name için unique zaten mevcut olduğu için manual indeksi kaldır
 productSchema.index({ brand: 1 });
 productSchema.index({ category: 1 });
 productSchema.index({ isActive: 1 });

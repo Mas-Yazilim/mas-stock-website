@@ -1,14 +1,13 @@
 import React from 'react'
-import { Product } from '../types'
-import ProductRow from './ProductRow'
-import MobileProductCard from './MobileProductCard'
+import ProductRow from './ProductRow.jsx'
+import MobileProductCard from './MobileProductCard.jsx'
 import { getCategoryIcon, getCategoryLabel } from '@/shared/utils/categoryIcons'
 
-interface ProductTableProps {
-  products: Product[]
-}
-
-const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
+/**
+ * @param {Object} props
+ * @param {import('../types').Product[]} props.products
+ */
+const ProductTable = ({ products }) => {
   // Ürünleri kategorilere göre grupla
   const groupedProducts = products.reduce((acc, product) => {
     if (!acc[product.category]) {
@@ -16,7 +15,7 @@ const ProductTable: React.FC<ProductTableProps> = ({ products }) => {
     }
     acc[product.category].push(product)
     return acc
-  }, {} as Record<string, Product[]>)
+  }, {})
 
   const categories = Object.keys(groupedProducts)
 

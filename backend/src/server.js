@@ -6,6 +6,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import productRoutes from './routes/productRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import categoryRoutes from './routes/categoryRoutes.js';
+import accessoryRoutes from './routes/accessoryRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +43,8 @@ const connectDB = async () => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/accessories', accessoryRoutes);
 
 // Ana route
 app.get('/', (req, res) => {

@@ -1,19 +1,15 @@
 import React from 'react'
-import { ProductColor } from '../types'
 
-interface ColorSwatchesProps {
-  colors: ProductColor[]
-  maxVisible?: number
-}
-
-const ColorSwatches: React.FC<ColorSwatchesProps> = ({ 
-  colors, 
-  maxVisible = 6 
-}) => {
+/**
+ * @param {Object} props
+ * @param {import('../types').ProductColor[]} props.colors
+ * @param {number} [props.maxVisible=6]
+ */
+const ColorSwatches = ({ colors, maxVisible = 6 }) => {
   const visibleColors = colors.slice(0, maxVisible)
   const remainingCount = colors.length - maxVisible
 
-  const hexToRgb = (hex: string): { r: number; g: number; b: number } | null => {
+  const hexToRgb = (hex) => {
     const cleaned = hex.replace('#', '')
     if (!(cleaned.length === 3 || cleaned.length === 6)) return null
     const full = cleaned.length === 3
@@ -25,7 +21,7 @@ const ColorSwatches: React.FC<ColorSwatchesProps> = ({
     return { r, g, b }
   }
 
-  const isLightColor = (hex: string): boolean => {
+  const isLightColor = (hex) => {
     const rgb = hexToRgb(hex)
     if (!rgb) return false
     // Perceived luminance (ITU-R BT.709)

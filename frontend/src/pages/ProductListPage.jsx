@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import SearchBar from '@/shared/components/SearchBar'
-import ProductTable from '@/features/products/components/ProductTable'
-import { useProducts } from '@/hooks/useProducts'
+import ProductTable from '@/features/products/components/ProductTable.jsx'
+import AccessoryTable from '@/components/AccessoryTable.jsx'
+import { useProducts } from '@/hooks/useProducts.js'
 import CategoryFilter from '@/shared/components/CategoryFilter'
-  import apiService from '@/services/api'
+import apiService from '@/services/api.js'
 
-const ProductListPage: React.FC = () => {
+const ProductListPage = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [ibanCopied, setIbanCopied] = useState(false)
@@ -15,7 +16,7 @@ const ProductListPage: React.FC = () => {
     category: selectedCategory || undefined,
   })
 
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState([])
 
   React.useEffect(() => {
     const loadCategories = async () => {
@@ -29,7 +30,7 @@ const ProductListPage: React.FC = () => {
     loadCategories()
   }, [])
 
-  const handleSearch = (term: string) => {
+  const handleSearch = (term) => {
     setSearchTerm(term)
   }
 
@@ -130,7 +131,28 @@ const ProductListPage: React.FC = () => {
         </div>
       )}
       
-      {!loading && !error && <ProductTable products={products} />}
+      {!loading && !error && (
+        <div className="space-y-8">
+          {/* Ürünler Tablosu */}
+          <ProductTable products={products} />
+          
+          {/* Aksesuarlar Tablosu - Ayrı API'den gelecek */}
+          <div>
+            <div className="mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                </div>
+                Aksesuarlar
+              </h2>
+              <p className="text-gray-600 mt-1">Mevcut tüm aksesuarlar</p>
+            </div>
+            <AccessoryTable />
+          </div>
+        </div>
+      )}
 
       {/* İletişim Bölümü */}
       <div className="mt-12">
@@ -182,7 +204,7 @@ const ProductListPage: React.FC = () => {
                     className="ml-3 text-sm px-3 py-1.5 bg-gray-900 text-white rounded-md hover:bg-black"
                   >{ibanCopied ? 'Kopyalandı' : 'Kopyala'}</button>
                 </div>
-                <p className="mt-2 text-xs text-gray-500">Not: Bu bir örnek IBAN’dır.</p>
+                <p className="mt-2 text-xs text-gray-500">Not: Bu bir örnek IBAN'dır.</p>
               </div>
             </div>
           </div>

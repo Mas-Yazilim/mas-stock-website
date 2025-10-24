@@ -75,7 +75,7 @@ const AccessoryModal: React.FC<AccessoryModalProps> = ({ isOpen, onClose, onSucc
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`${apiEndpoint}/api/accessories/categories`)
+      const response = await fetch(apiEndpoint('/accessories/categories'))
       if (response.ok) {
         const data = await response.json()
         setCategories(data)
@@ -118,8 +118,8 @@ const AccessoryModal: React.FC<AccessoryModalProps> = ({ isOpen, onClose, onSucc
 
     try {
       const url = accessory 
-        ? `${apiEndpoint}/api/accessories/${accessory._id}`
-        : `${apiEndpoint}/api/accessories`
+        ? apiEndpoint(`/accessories/${accessory._id}`)
+        : apiEndpoint('/accessories')
       
       const method = accessory ? 'PUT' : 'POST'
       
@@ -388,26 +388,55 @@ const AccessoryList: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([])
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const { token } = useAuthStore()
 
+  // Debounce arama terimi
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 300) // 300ms bekle (daha hızlı tepki)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  // İlk yükleme
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  // Arama ve kategori değiştiğinde
   useEffect(() => {
     loadAccessories()
-    loadCategories()
-  }, [selectedCategory, searchTerm])
+  }, [selectedCategory, debouncedSearchTerm])
 
   const loadAccessories = async () => {
+    // İlk yüklemede loading göster, sonraki aramalarda gösterme (input focus kaybını önlemek için)
+    if (accessories.length === 0) {
+      setLoading(true)
+    }
+    
     try {
       const params = new URLSearchParams()
       if (selectedCategory !== 'all') params.append('category', selectedCategory)
-      if (searchTerm) params.append('search', searchTerm)
+      if (debouncedSearchTerm.trim()) params.append('search', debouncedSearchTerm.trim())
       
-      const response = await fetch(`${apiEndpoint}/api/accessories?${params}`)
+      const url = params.toString() 
+        ? `${apiEndpoint('/accessories')}?${params}`
+        : apiEndpoint('/accessories')
+      
+      const response = await fetch(url)
       if (response.ok) {
         const data = await response.json()
-        setAccessories(data.accessories)
+        // Backend'den gelen veri yapısını kontrol et
+        setAccessories(data.accessories || data || [])
+      } else {
+        console.error('Aksesuar yükleme hatası:', response.status)
+        setAccessories([])
       }
     } catch (error) {
       console.error('Aksesuarlar yüklenirken hata:', error)
+      setAccessories([])
     } finally {
       setLoading(false)
     }
@@ -415,7 +444,7 @@ const AccessoryList: React.FC = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(`${apiEndpoint}/api/accessories/categories`)
+      const response = await fetch(apiEndpoint('/accessories/categories'))
       if (response.ok) {
         const data = await response.json()
         setCategories(data)
@@ -433,7 +462,7 @@ const AccessoryList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Bu aksesuarı silmek istediğinizden emin misiniz?')) {
       try {
-        const response = await fetch(`${apiEndpoint}/api/accessories/${id}`, {
+        const response = await fetch(apiEndpoint(`/accessories/${id}`), {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -451,7 +480,7 @@ const AccessoryList: React.FC = () => {
   const handleStatusToggle = async (id: string, currentStatus: string) => {
     try {
       const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
-      const response = await fetch(`${apiEndpoint}/api/accessories/${id}/status`, {
+      const response = await fetch(apiEndpoint(`/accessories/${id}/status`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -499,14 +528,30 @@ const AccessoryList: React.FC = () => {
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
+          <div className="flex-1 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <input
               type="text"
-              placeholder="Aksesuar ara..."
+              placeholder="Aksesuar ara (isim, kategori, renk, açıklama)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full pl-10 pr-10 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                title="Temizle"
+              >
+                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
           <div className="sm:w-48">
             <select
@@ -521,6 +566,19 @@ const AccessoryList: React.FC = () => {
             </select>
           </div>
         </div>
+        {(searchTerm || selectedCategory !== 'all') && (
+          <div className="mt-3 text-sm text-gray-600">
+            {loading ? (
+              <span>Aranıyor...</span>
+            ) : (
+              <span>
+                <strong>{accessories.length}</strong> aksesuar bulundu
+                {searchTerm && ` - "${searchTerm}" için`}
+                {selectedCategory !== 'all' && ` - ${selectedCategory} kategorisinde`}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Accessories Table */}
@@ -530,14 +588,24 @@ const AccessoryList: React.FC = () => {
             <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Henüz aksesuar yok</h3>
-            <p className="text-gray-500 mb-4">İlk aksesuarınızı ekleyerek başlayın.</p>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
-            >
-              Aksesuar Ekle
-            </button>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchTerm || selectedCategory !== 'all' 
+                ? 'Arama sonucu bulunamadı' 
+                : 'Henüz aksesuar yok'}
+            </h3>
+            <p className="text-gray-500 mb-4">
+              {searchTerm || selectedCategory !== 'all'
+                ? 'Farklı bir arama kriteri deneyin.'
+                : 'İlk aksesuarınızı ekleyerek başlayın.'}
+            </p>
+            {!searchTerm && selectedCategory === 'all' && (
+              <button
+                onClick={() => setModalOpen(true)}
+                className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+              >
+                Aksesuar Ekle
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">

@@ -19,8 +19,15 @@ router.get('/', async (req, res) => {
       filter.status = status;
     }
     
-    if (search) {
-      filter.$text = { $search: search };
+    // Arama için regex kullan (daha esnek)
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i'); // case-insensitive
+      filter.$or = [
+        { name: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+        { colors: { $in: [searchRegex] } }
+      ];
     }
     
     const skip = (page - 1) * limit;

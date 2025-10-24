@@ -129,7 +129,7 @@ const AccessoryTable = () => {
       if (selectedCategory !== 'all') params.append('category', selectedCategory);
       if (searchTerm) params.append('search', searchTerm);
       
-      const response = await fetch(`http://localhost:5000/api/accessories?${params}`);
+      const response = await fetch(`http://localhost:5001/api/accessories?${params}`);
       if (response.ok) {
         const data = await response.json();
         setAccessories(data.accessories);
@@ -143,7 +143,7 @@ const AccessoryTable = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/accessories/categories');
+      const response = await fetch('http://localhost:5001/api/accessories/categories');
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
